@@ -1,7 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const cors = require("cors");
+require("dotenv").config();
 const mongoose = require("mongoose");
+const multer  = require('multer')
+const upload = multer({ dest: 'uploads/' });
+const imageStorage = multer.diskStorage({
+  // Destination to store image     
+  destination: 'images', 
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '_' + Date.now() 
+           + path.extname(file.originalname))
+          // file.fieldname is name of the field (image)
+          // path.extname get the uploaded file extension
+  }
+});
 
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
@@ -23,11 +36,14 @@ const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
 const courseRouter = require("./routes/courseRouter");
 const progressRouter = require("./routes/progressRouter");
+const quizRouter = require("./routes/quiz");
 
 const Connect = require("connect-pg-simple");
 const session = require("express-session");
 
 const app = express();
+
+app.use(cors());
 
 app.use(
   session({
@@ -42,8 +58,8 @@ app.use(
 );
 
 const DEFAULT_ADMIN = {
-  email: "admin@example.com",
-  password: "password",
+  email: process.env.DEFAULT_ADMIN_EMAIL,
+  password: process.env.DEFAULT_ADMIN_PASSWORD,
 };
 
 const authenticate = async (email, password) => {
@@ -57,7 +73,7 @@ const ConnectSession = Connect(session);
 const sessionStore = new ConnectSession({
   conObject: {
     connectionString:
-      "postgres://mmnayolh:rhHzkA3y-qJ2VJf3q-JDtUDi1SPK5nhh@peanut.db.elephantsql.com/mmnayolh",
+    process.env.POSTGRES_CONNECTION_STRING,
     ssl: process.env.NODE_ENV === "production",
   },
   tableName: "session",
@@ -147,7 +163,7 @@ app.use(admin.options.rootPath, adminRouter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const url = "mongodb+srv://test:test@cluster0.rkd2v8q.mongodb.net/aceug";
+const url = process.env.MONGO_DB_URI;
 const connect = mongoose.connect(url);
 
 app.use(passport.initialize());
@@ -169,7 +185,7 @@ connect.then(
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-
+app.use("/quiz",quizRouter);
 app.use("/courses", courseRouter);
 app.use("/progress", progressRouter);
 

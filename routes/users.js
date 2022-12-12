@@ -91,7 +91,7 @@ usersRouter
         try {
           passport.authenticate("local")(req, res, function () {
   
-            res.send({ success: false, data: "token" });
+            res.send({ success: true, data: "token" });
           });
         } catch (error) {
           console.log(error);
