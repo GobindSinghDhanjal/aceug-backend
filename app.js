@@ -3,18 +3,8 @@ const router = express.Router();
 const cors = require("cors");
 require("dotenv").config();
 const mongoose = require("mongoose");
-const multer  = require('multer')
-const upload = multer({ dest: 'uploads/' });
-const imageStorage = multer.diskStorage({
-  // Destination to store image     
-  destination: 'images', 
-    filename: (req, file, cb) => {
-        cb(null, file.fieldname + '_' + Date.now() 
-           + path.extname(file.originalname))
-          // file.fieldname is name of the field (image)
-          // path.extname get the uploaded file extension
-  }
-});
+const multer  = require('multer');
+const path = require("path");
 
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
@@ -31,12 +21,18 @@ const Quiz = require("./models/quiz");
 const Question = require("./models/questions");
 const Course = require("./models/courses");
 const User = require("./models/users");
+const Instructor = require("./models/instructor");
+const Resource = require("./models/resources");
+const Module = require("./models/modules");
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
 const courseRouter = require("./routes/courseRouter");
 const progressRouter = require("./routes/progressRouter");
 const quizRouter = require("./routes/quiz");
+const instructorRouter = require("./routes/instructor");
+const resourceRouter = require("./routes/resources");
+const moduleRouter = require("./routes/modules");
 
 const Connect = require("connect-pg-simple");
 const session = require("express-session");
@@ -56,6 +52,9 @@ app.use(
     },
   })
 );
+
+// app.use(express.static('public')); 
+app.use('/images', express.static('images'));
 
 const DEFAULT_ADMIN = {
   email: process.env.DEFAULT_ADMIN_EMAIL,
@@ -127,6 +126,9 @@ const adminOptions = {
     { resource: Video },
     { resource: User },
     { resource: Course },
+    {resource: Instructor},
+    {resource: Resource},
+    {resource: Module},
     { resource: Quiz, features: [importExportFeature()] },
     {
       resource: Question,
@@ -188,6 +190,9 @@ app.use("/users", usersRouter);
 app.use("/quiz",quizRouter);
 app.use("/courses", courseRouter);
 app.use("/progress", progressRouter);
+app.use("/instructors", instructorRouter);
+app.use("/resources", resourceRouter);
+app.use("/modules",moduleRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

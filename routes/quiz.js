@@ -9,7 +9,6 @@ quizRouter
     res.end("Not Supported");
   })
   .post((req, res, next) => {
-    // res.end("Hello");
     const name = req.body.name;
     const subject = req.body.subject;
     const time_limit = req.body.time;
@@ -17,22 +16,30 @@ quizRouter
     const questions = req.body.questions;
     const tags = req.body.tags;
 
-    console.log(name);
-    console.log(subject);
-    console.log(minimum_grade);
-    console.log(questions);
-
     Quiz.create(req.body)
       .then(
         (quiz) => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json(quiz);
+          // res.statusCode = 200;
+          // res.setHeader("Content-Type", "application/json");
+          // res.json(quiz);
+          res.send({
+            success: true,
+            data: { message: "Quiz Saved Successfully" },
+          });
         },
-        (err) => next(err)
+        (err) => {
+          res.send({
+            success: false,
+            data: err,
+          });
+        }
       )
-      .catch((err) => next(err));
-
+      .catch((err) => {
+        res.send({
+          success: false,
+          data: err,
+        });
+      });
   })
   .put((req, res, next) => {
     res.statusCode = 403;
@@ -43,4 +50,4 @@ quizRouter
     res.end("Not Supported");
   });
 
-  module.exports = quizRouter;
+module.exports = quizRouter;

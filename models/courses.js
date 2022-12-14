@@ -95,8 +95,19 @@ const courseSchema = new Schema(
         required: true,
       }
     },
-    modules: [moduleSchema],
-    instructors: [instructorSchema],
+    modules: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Module"
+      }
+    ],
+    // instructors: [instructorSchema],
+    instructors: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Instructor",
+      },
+    ],
     price: {
       type: Number,
       required: true,
