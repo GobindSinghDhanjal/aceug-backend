@@ -11,6 +11,10 @@ const resourcesSchema = new Schema({
     enum: ["video","lesson","quiz"],
     required: true,
   },
+  content: {
+    type: String,
+    required: true
+  },
   duration: {
     type: Number,
     required: true,

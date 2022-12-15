@@ -3,6 +3,8 @@ const Courses = require("../models/courses");
 const courseRouter = express.Router();
 const multer = require("multer");
 const path = require("path");
+const Instructor = require("../models/instructor");
+const Module = require("../models/modules");
 
 const imageStorage = multer.diskStorage({
   destination: "images",
@@ -42,65 +44,64 @@ courseRouter
       )
       .catch((err) => next(err));
   })
-  .post(imageUpload.fields([{ name: 'thumbnail', maxCount:1}, { name: 'iframe', maxCount:1}]), (req, res, next) => {
+  .post(
+    imageUpload.fields([
+      { name: "thumbnail", maxCount: 1 },
+    ]),
+    (req, res, next) => {
 
+      const name = req.body.name;
+      const thumbnail = req.files.thumbnail[0].path;
+      const overview = {
+        description: req.body.overviewDescription,
+        iframe: req.body.iframe,
+      };
+      const modules = JSON.parse(req.body.modules);
+      const instructors = JSON.parse(req.body.instructors);
+      const price = Number(req.body.price);
+      // const reviews = [];
+      const duration = req.body.duration;
+      const lectures = Number(req.body.lectures);
+      const language = req.body.language;
+      const enrolled = Number(req.body.enrolled);
 
-    console.log("this is body");
-    console.log(req.body);
-    console.log("this is file");
-    console.log(req.files);
-   
-    const name = req.body.name;
-    const thumbnail = req.files.thumbnail[0].path;
-    const overview = {
-      description: "abcd",
-      iframe: req.files.iframe[0].path,
-    };
-    const modules = [];
-    const instructors = [];
-    const price = 10000;
-    const reviews = [];
-    const duration = 10;
-    const lectures = 5;
-    const language = "cscsdc";
-    const enrolled = 2;
+      const data = {
+        name,
+        thumbnail,
+        overview,
+        modules,
+        instructors,
+        price,
+        // reviews,
+        duration,
+        lectures,
+        language,
+        enrolled,
+      };
 
-    const data = {
-      name,
-      thumbnail,
-      overview,
-      modules,
-      instructors,
-      price,
-      reviews,
-      duration,
-      lectures,
-      language,
-      enrolled,
-    };
+      Courses.create(data)
+        .then(
+          (course) => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json(course);
+          },
+          (err) => next(err)
+        )
+        .catch((err) => next(err));
 
-    Courses.create(data)
-      .then(
-        (course) => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json(course);
-        },
-        (err) => next(err)
-      )
-      .catch((err) => next(err));
-
-    // Courses.create(req.body)
-    //   .then(
-    //     (course) => {
-    //       res.statusCode = 200;
-    //       res.setHeader("Content-Type", "application/json");
-    //       res.json(course);
-    //     },
-    //     (err) => next(err)
-    //   )
-    //   .catch((err) => next(err));
-  })
+      // Courses.create(req.body)
+      //   .then(
+      //     (course) => {
+      //       res.statusCode = 200;
+      //       res.setHeader("Content-Type", "application/json");
+      //       res.json(course);
+      //     },
+      //     (err) => next(err)
+      //   )
+      //   .catch((err) => next(err));
+    }
+  )
   .put((req, res, next) => {
     res.statusCode = 403;
     res.end("Not Supported");
@@ -116,9 +117,34 @@ courseRouter
     Courses.findById(req.params.courseId)
       .then(
         (course) => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json(course);
+          const instructorsIds = course.instructors;
+          const moduleIds = course.modules;
+
+          Instructor.find()
+            .where("_id")
+            .in(instructorsIds)
+            .exec((err, instructors) => {
+              if (!err) {
+                course.instructors = instructors;
+
+                Module.find().where("_id").in(moduleIds).populate("resources").exec((err, modules)=>{
+                  if(!err){
+
+                    course.modules = modules;
+
+                    res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json(course);
+                  }else{
+                    console.log(err);
+                  }
+                })
+
+                
+              } else {
+                console.log(err);
+              }
+            });
         },
         (err) => next(err)
       )
