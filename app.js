@@ -3,8 +3,7 @@ const router = express.Router();
 const cors = require("cors");
 require("dotenv").config();
 const mongoose = require("mongoose");
-const multer  = require('multer');
-const path = require("path");
+const fileUpload = require("express-fileupload")
 
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
@@ -38,6 +37,9 @@ const Connect = require("connect-pg-simple");
 const session = require("express-session");
 
 const app = express();
+// app.use(fileUpload({
+//   useTempFiles:true
+// }))
 
 app.use(cors());
 

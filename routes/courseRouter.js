@@ -5,6 +5,14 @@ const multer = require("multer");
 const path = require("path");
 const Instructor = require("../models/instructor");
 const Module = require("../models/modules");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+  secure: true,
+});
 
 const imageStorage = multer.diskStorage({
   destination: "images",
@@ -49,6 +57,21 @@ courseRouter
       { name: "thumbnail", maxCount: 1 },
     ]),
     (req, res, next) => {
+      // const thumbnail = JSON.parse(req.body.thumbnail);
+      // console.log(thumbnail.data);
+
+      // cloudinary.uploader.upload(
+      //   thumbnail,
+      //   { folder: "aceug" },
+      //   (err, result) => {
+      //     if (!err) {
+      //       console.log(result);
+      //       const thumbnail = result.secure_url;
+      //     } else {
+      //       console.log(err);
+      //     }
+      //   }
+      // );
 
       const name = req.body.name;
       const thumbnail = req.files.thumbnail[0].path;
@@ -59,7 +82,6 @@ courseRouter
       const modules = JSON.parse(req.body.modules);
       const instructors = JSON.parse(req.body.instructors);
       const price = Number(req.body.price);
-      // const reviews = [];
       const duration = req.body.duration;
       const lectures = Number(req.body.lectures);
       const language = req.body.language;
@@ -72,12 +94,13 @@ courseRouter
         modules,
         instructors,
         price,
-        // reviews,
         duration,
         lectures,
         language,
         enrolled,
       };
+
+    
 
       Courses.create(data)
         .then(
@@ -89,17 +112,6 @@ courseRouter
           (err) => next(err)
         )
         .catch((err) => next(err));
-
-      // Courses.create(req.body)
-      //   .then(
-      //     (course) => {
-      //       res.statusCode = 200;
-      //       res.setHeader("Content-Type", "application/json");
-      //       res.json(course);
-      //     },
-      //     (err) => next(err)
-      //   )
-      //   .catch((err) => next(err));
     }
   )
   .put((req, res, next) => {
@@ -127,20 +139,21 @@ courseRouter
               if (!err) {
                 course.instructors = instructors;
 
-                Module.find().where("_id").in(moduleIds).populate("resources").exec((err, modules)=>{
-                  if(!err){
+                Module.find()
+                  .where("_id")
+                  .in(moduleIds)
+                  .populate("resources")
+                  .exec((err, modules) => {
+                    if (!err) {
+                      course.modules = modules;
 
-                    course.modules = modules;
-
-                    res.statusCode = 200;
-                res.setHeader("Content-Type", "application/json");
-                res.json(course);
-                  }else{
-                    console.log(err);
-                  }
-                })
-
-                
+                      res.statusCode = 200;
+                      res.setHeader("Content-Type", "application/json");
+                      res.json(course);
+                    } else {
+                      console.log(err);
+                    }
+                  });
               } else {
                 console.log(err);
               }
